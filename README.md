@@ -39,17 +39,24 @@
 * 其他：fastjson, Swagger-ui, lombok 等
 
 #### 效果
+
 **首页**
 <img src="imgs/screencapture-ch3nnn-cn-admin-index-2021-11-11-18_40_50.png" width="600"/>
+
 **文章管理**
 <img src="imgs/screencapture-ch3nnn-cn-admin-article-edit-detail-135-2021-11-11-18_42_06.png" width="600"/>
+
 **评论管理**
 <img src="imgs/screencapture-ch3nnn-cn-admin-comment-list-2021-11-11-18_42_23.png" width="600"/>
+
 **菜单管理**
 <img src="imgs/screencapture-ch3nnn-cn-admin-menu-list-2021-11-11-18_43_15.png" width="600"/>
+
 **权限管理**
 <img src="imgs/screencapture-ch3nnn-cn-admin-sysRole-2021-11-11-18_43_35.png" width="600"/>
+
 **用户管理**
 <img src="imgs/screencapture-ch3nnn-cn-admin-users-list-2021-11-11-18_41_27.png" width="600"/>
+
 **系统日志**
 <img src="imgs/screencapture-ch3nnn-cn-admin-system-log-2021-11-11-18_41_28.png" width="600"/>
