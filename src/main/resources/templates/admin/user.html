@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(_,_)"></head>
+<link rel="stylesheet" th:href="@{/js/jconfirm/jquery-confirm.min.css}">
+<body>
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:replace="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-toolbar clearfix">
+                                <div class="toolbar-btn-action">
+                                    <a class="btn btn-primary m-r-5 example-p-3" href="#!"><i class="mdi mdi-plus"></i>新增</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>编号</th>
+                                            <th>用户名</th>
+                                            <th>邮箱</th>
+                                            <th>用户类别</th>
+                                            <th>是否管理员</th>
+                                            <th>角色</th>
+                                            <th>创建时间</th>
+                                            <th>最后登录时间</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody th:each="user: ${userList}">
+                                        <tr>
+                                            <td th:text="${user.id}">1</td>
+                                            <td th:text="${user.username}">第01章 天涯思君不可忘</td>
+                                            <td th:text="${user.email}">金庸</td>
+                                            <td th:text="${user.provider}">36</td>
+                                            <td th:text="${user.isSuperuser}"><font class="text-success"></font></td>
+                                            <td>
+                                                <span class="label label-info-light" style="border-radius:20px"
+                                                      th:each="sysRole: ${user.sysRoleList}">[[${sysRole.name}]]</span>
+                                            </td>
+                                            <td th:text="${#dates.format(user.dateJoined, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                            <td th:text="${#dates.format(user.lastLogin, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a class="btn btn-xs btn-default example-p-2"
+                                                       data-toggle="tooltip" href="#!"
+                                                       title="编辑"><i class="mdi mdi-pencil"></i></a>
+                                                    <a class="btn btn-xs btn-default" data-toggle="tooltip"
+                                                       id="example-error-notify"
+                                                       th:onclick="clickDeleteMenu([[${user.id}]])"
+                                                       title="删除"><i class="mdi mdi-window-close"></i></a>
+                                                </div>
+                                            </td>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+        <!--End 页面主要内容-->
+        </aside>
+    </div>
+</div>
+<footer th:replace="admin/base :: commonFooter"></footer>
+<!--消息通知-->
+<!--<script th:src="@{/js/bootstrap-notify.min.js}" type="text/javascript"></script>-->
+<!--<script th:src="@{/js/lightyear.js}" type="text/javascript"></script>-->
+<!--&lt;!&ndash;对话框&ndash;&gt;-->
+<!--<script th:src="@{/js/jconfirm/jquery-confirm.min.js}"></script>-->
+
+<script type="text/javascript">
+
+    function clickDeleteMenu(id) {
+        lightyear.loading('show');
+        // 假设ajax提交操作
+        $.ajax({
+            type: "DELETE",
+            url: "/admin/users/delete/" + id,
+            contentType: "application/json",
+            dataType: "json",
+            timeout: 50000,
+            data: JSON.stringify({"id": id}),
+            async: false,
+            success: function (data) {
+                lightyear.loading('show');
+                // 假设ajax提交操作
+                if (data.code === 1) {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.url("/admin/users/list");  // 先指定跳转链接
+                        lightyear.notify('删除成功，页面即将刷新', 'success', 300);
+                    }, 1e3)
+                } else {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.notify(data.msg, 'warning', 100);
+                    }, 1e3)
+                }
+
+            },
+            error: function (err) {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                }, 1e3)
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    $('.example-p-3').on('click', function () {
+        $.confirm({
+            title: '新增用户',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<label>用户名</label>' +
+                '<input type="text" placeholder="用户名" class="username form-control" required />' +
+                '<label>密码</label>' +
+                '<input type="password" placeholder="密码" class="password form-control" required />' +
+                '<label>邮箱</label>' +
+                '<input type="text" placeholder="邮箱" class="email form-control" required />' +
+                '<label>是否管理员</label>' +
+                '<input type="text" placeholder="是否管理员" class="isSuperuser form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+
+                        var data = {
+                            "username": this.$content.find('.username').val(),
+                            "password": this.$content.find('.password').val(),
+                            "email": this.$content.find('.email').val(),
+                            "isSuperuser": this.$content.find('.isSuperuser').val().length > 0,
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "POST",
+                            url: "/admin/users/add",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/users/list");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    });
+    $('.example-p-2').on('click', function () {
+        // 获取点击标签
+        var parentNode = this.parentNode.parentNode.parentNode;
+        var array = parentNode.getElementsByTagName("td");
+        var cars = [];
+
+        for (var i = 0; i < array[5].children.length; i++) {
+            cars.push(array[5].children[i].textContent);
+        }
+        // 选中角色多选框
+        $.ajax({
+            url: "/admin/sysRole/list", async: true, success: function (result) {
+                var html = ""
+                for (let i = 0; i < result.data.length; i++) {
+                    if (cars.indexOf(result.data[i].name) !== -1) {
+                        html +=
+                            '<label class="lyear-checkbox checkbox-inline checkbox-primary">' +
+                            '<input checked="checked" class="checkbox_label form-control" type="checkbox" data-roleId="' + result.data[i].id + '"><span>' + result.data[i].name + '</span>' +
+                            '</label>'
+
+                    } else {
+                        html +=
+                            '<label class="lyear-checkbox checkbox-inline checkbox-primary">' +
+                            '<input class="checkbox_label form-control" type="checkbox" data-roleId="' + result.data[i].id + '"><span>' + result.data[i].name + '</span>' +
+                            '</label>'
+                    }
+
+                }
+                $(".example-box").append(html);
+            }
+        });
+
+        $.confirm({
+            title: '修改用户',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<input type="text" value="' + array[0].innerText + '" class="id form-control" required style="display:none" />' +
+                '<label>用户名</label>' +
+                '<input type="text" placeholder="用户名" value="' + array[1].innerText + '" class="username form-control" required />' +
+                '<label>密码</label>' +
+                '<input type="password" placeholder="密码" value=""  class="password form-control" required />' +
+                '<label>邮箱</label>' +
+                '<input type="text" placeholder="邮箱" value="' + array[2].innerText + '"  class="email form-control" required />' +
+                '<label>是否管理员</label>' +
+                '<input type="text" placeholder="是否管理员" value="' + array[4].innerText + '"  class="isSuperuser form-control" required />' +
+                '<label>角色</label>' +
+                '<div class="example-box form-control"></div>' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+                        const roleIds = [];
+                        this.$content.find(".checkbox_label").each(function () {
+                            if ($(this)[0].checked) {
+                                roleIds.push($(this).attr('data-roleId'));
+                            }
+                        })
+
+                        const data = {
+                            "id": this.$content.find('.id').val(),
+                            "username": this.$content.find('.username').val(),
+                            "password": this.$content.find('.password').val(),
+                            "email": this.$content.find('.email').val(),
+                            "isSuperuser": this.$content.find('.isSuperuser').val().length > 0,
+                            "roleIds": roleIds,
+                        };
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "PUT",
+                            url: "/admin/users/update",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/users/list");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

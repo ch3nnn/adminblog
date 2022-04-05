@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(_,_)"></head>
+<link rel="stylesheet" th:href="@{/js/jconfirm/jquery-confirm.min.css}">
+<body>
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:replace="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-toolbar clearfix">
+                                <div class="toolbar-btn-action">
+                                    <a class="btn btn-primary m-r-5" onclick="clickAddMenu()"><i
+                                            class="mdi mdi-plus"></i>新增</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </main>
+        <!--End 页面主要内容-->
+        </aside>
+    </div>
+</div>
+<footer th:replace="admin/base :: commonFooter"></footer>
+<!--&lt;!&ndash;消息通知&ndash;&gt;-->
+<!--<script th:src="@{/js/bootstrap-notify.min.js}" type="text/javascript"></script>-->
+<!--<script th:src="@{/js/lightyear.js}" type="text/javascript"></script>-->
+<!--&lt;!&ndash;对话框&ndash;&gt;-->
+<!--<script th:src="@{/js/jconfirm/jquery-confirm.min.js}"></script>-->
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".table-responsive").append(
+            '<table class="table table-bordered">' +
+            '<thead>' +
+            '<tr>' +
+            '<th>编号</th>' +
+            '<th>角色名称</th>' +
+            '<th>描述</th>' +
+            '<th>状态</th>' +
+            '<th>角色代码</th>' +
+            '<th>创建日期</th>' +
+            '<th>修改日期</th>' +
+            '<th>操作</th>' +
+            '</tr>' +
+            '</thead>' +
+            '</table>'
+        );
+
+
+        $.ajax({
+            url: "/admin/sysRole/list", async: true, success: function (result) {
+                var html = ""
+                for (let i = 0; i < result.data.length; i++) {
+                    html += '<tr id="tr-' + result.data[i].id + '">' +
+                        '<td>' + result.data[i].id + '</td>' +
+                        '<td>' + result.data[i].name + '</td>' +
+                        '<td>' + result.data[i].description + '</td>' +
+                        '<td>' + result.data[i].isEnable + '</td>' +
+                        '<td>' + result.data[i].roleCode + '</td>' +
+                        '<td>' + result.data[i].createTime + '</td>' +
+                        '<td>' + result.data[i].updateTime + '</td>' +
+                        '<td><button class="btn btn-w-xs btn-round btn-danger" onclick="clickAddPermission(' + result.data[i].id + ')">权限</button></td>' +
+                        '<td>' +
+                        '<div class="btn-group">' +
+                        '<a class="btn btn-xs btn-default edit-btn" title="编辑" data-toggle="tooltip" onclick="clickEditMenu(' + result.data[i].id + ')" ><i class="mdi mdi-pencil"></i></a>' +
+                        '<a class="btn btn-xs btn-default" id="example-error-notify" onclick="clickDeleteMenu(' + result.data[i].id + ')" title="删除" data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>' +
+                        '</div>' +
+                        '</td>' +
+                        '<tr>'
+                }
+                $(".table-bordered").append(html);
+
+            }
+        });
+    });
+
+    function clickAddPermission(roleId) {
+
+        var html;
+        var menuIdList = [];
+
+        $.ajax({
+            type: "GET",
+            url: "/admin/sysRole/hasRoleMenu/" + roleId,
+            contentType: "application/json",
+            dataType: "json",
+            timeout: 50000,
+            async: false,
+            success: function (data) {
+                for (let i = 0; i < data.data.length; i++) {
+                    menuIdList.push(data.data[i].id)
+                }
+            },
+
+            error: function (err) {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                }, 1e3)
+            }
+        });
+
+
+        // 假设ajax提交操作
+        $.ajax({
+            type: "GET",
+            url: "/admin/menu/api/list",
+            contentType: "application/json",
+            dataType: "json",
+            timeout: 50000,
+            async: false,
+            success: function (data) {
+                let user_data = data.data;
+                html = '<form action="#!" method="post">' +
+                    '<div class="table-responsive">' +
+                    '<table class="table table-striped">' +
+                    '<tbody>';
+
+                $.each(user_data, function (key, value) {
+                    $.each(value, function (k, v) {
+
+                        html += '<tr><td class="p-l-20"><label class="lyear-checkbox checkbox-primary">'
+                        // 判断是否存在权限
+                        if (menuIdList.indexOf(v.id) !== -1) {
+                            html += '<input checked="checked" name="rules" type="checkbox" class="checkbox-parent checkbox-child"  value="' + v.id + '">'
+                        } else {
+                            html += '<input name="rules" type="checkbox" class="checkbox-parent checkbox-child"  value="' + v.id + '">'
+                        }
+
+                        html += '<input name="rules" type="checkbox" class="checkbox-parent checkbox-child"  value="' + v.id + '">' +
+                            '<span>' + v.name + '</span></label></td></tr>'
+                        // 二级菜单
+                        $.each(v.children, function (ck, cv) {
+                            html += '' +
+                                '<tr><td class="p-l-40"><label class="lyear-checkbox checkbox-primary checkbox-inline">'
+                            // 判断是否存在权限
+                            if (menuIdList.indexOf(cv.id) !== -1) {
+                                html += '<input checked="checked" name="rules" type="checkbox" class="checkbox-child"  value="' + cv.id + '">'
+                            } else {
+                                html += '<input name="rules" type="checkbox" class="checkbox-child"  value="' + cv.id + ' ">'
+                            }
+                            html += '<span>' + cv.name + '</span></label></td></tr>'
+                        })
+                    })
+
+                })
+                html += '<tbody></form>';
+            },
+
+            error: function (err) {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                }, 1e3)
+            }
+        });
+
+
+        $.confirm({
+            title: '修改权限',
+            content: html,
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+                        const menuIdList = [];
+                        this.$content.find(".checkbox-child").each(function () {
+                            if ($(this)[0].checked) {
+                                menuIdList.push($(this).attr('value'));
+                            }
+                        })
+
+                        var data = {
+                            "menuIdList": menuIdList,
+                            "roleId": roleId,
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "PUT",
+                            url: "/admin/sysRole/roleMenu",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/sysRole/");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 500);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    }
+
+    function clickAddMenu() {
+        $.confirm({
+            title: '新增角色',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<label>角色名称</label>' +
+                '<input type="text" placeholder="角色名称" value="" class="name form-control" required />' +
+                '<label>描述</label>' +
+                '<input type="text" placeholder="描述" value=""  class="description form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+
+                        var data = {
+                            "name": this.$content.find('.name').val(),
+                            "description": this.$content.find('.description').val(),
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "POST",
+                            url: "/admin/sysRole/add",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/sysRole/");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    }
+
+    function clickEditMenu(id) {
+
+        // 获取点击标签
+        var name = 'tr-' + id
+        var array = document.getElementById(name).childNodes;
+
+        $.confirm({
+            title: '修改角色',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<input type="text" value="' + array[0].innerText + '" class="id form-control" required style="display:none" />' +
+                '<label>角色名称</label>' +
+                '<input type="text" placeholder="角色名称" value="' + array[1].innerText + '" class="name form-control" required />' +
+                '<label>描述</label>' +
+                '<input type="text" placeholder="描述" value="' + array[2].innerText + '"  class="description form-control" required />' +
+                '<label>状态</label>' +
+                '<input type="text" placeholder="状态" value="' + array[3].innerText + '"  class="isEnable form-control" required />' +
+                '<label>角色代码</label>' +
+                '<input type="text" placeholder="角色代码" value="' + array[4].innerText + '"  class="isEnable form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+                        var data = {
+                            "id": this.$content.find('.id').val(),
+                            "name": this.$content.find('.name').val(),
+                            "description": this.$content.find('.description').val(),
+                            "isEnable": this.$content.find('.isEnable').val(),
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "PUT",
+                            url: "/admin/sysRole/update",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/sysRole/");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        })
+    }
+
+    function clickDeleteMenu(id) {
+        lightyear.loading('show');
+        // 假设ajax提交操作
+        $.ajax({
+            type: "DELETE",
+            url: "/admin/sysRole/delete/" + id,
+            contentType: "application/json",
+            dataType: "json",
+            timeout: 50000,
+            data: JSON.stringify({"id": id}),
+            async: false,
+            success: function (data) {
+                lightyear.loading('show');
+                // 假设ajax提交操作
+                if (data.code === 1) {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.url("/admin/sysRole/");  // 先指定跳转链接
+                        lightyear.notify('删除成功，页面即将刷新', 'success', 300);
+                    }, 1e3)
+                } else {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.notify(data.msg, 'warning', 100);
+                    }, 1e3)
+                }
+
+            },
+            error: function (err) {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                }, 1e3)
+            }
+        });
+    }
+</script>
+</body>
+</html>

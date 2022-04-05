@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ch3nnn.adminblog.mapper.AdminLogMapper">
+
+    <resultMap id="BaseResultMap" type="cn.ch3nnn.adminblog.entity.AdminLog">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="actionTime" column="action_time" jdbcType="TIMESTAMP"/>
+        <result property="objectId" column="object_id" jdbcType="VARCHAR"/>
+        <result property="objectRepr" column="object_repr" jdbcType="VARCHAR"/>
+        <result property="actionFlag" column="action_flag" jdbcType="SMALLINT"/>
+        <result property="changeMessage" column="change_message" jdbcType="VARCHAR"/>
+        <result property="contentTypeId" column="content_type_id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,action_time,object_id,
+        object_repr,action_flag,change_message,
+        content_type_id,user_id
+    </sql>
+
+
+    <resultMap id="selectAdminLogPageResultMap" type="cn.ch3nnn.adminblog.entity.AdminLog">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="actionTime" column="action_time" jdbcType="TIMESTAMP"/>
+        <result property="objectId" column="object_id" jdbcType="VARCHAR"/>
+        <result property="objectRepr" column="object_repr" jdbcType="VARCHAR"/>
+        <result property="actionFlag" column="action_flag" jdbcType="SMALLINT"/>
+        <result property="changeMessage" column="change_message" jdbcType="VARCHAR"/>
+        <result property="contentTypeId" column="content_type_id" jdbcType="INTEGER"/>
+
+        <association property="user" javaType="cn.ch3nnn.adminblog.entity.UserUser">
+            <id property="id" column="user_id"/>
+            <result property="username" column="username"/>
+        </association>
+
+    </resultMap>
+
+    <select id="selectAdminLogPage" resultMap="selectAdminLogPageResultMap">
+        SELECT django_admin_log.id,
+               action_time,
+               object_id,
+               object_repr,
+               action_flag,
+               change_message,
+               content_type_id,
+               user_id,
+               user_user.username
+        FROM django_admin_log
+                 LEFT JOIN user_user ON django_admin_log.user_id = user_user.id
+        ORDER BY action_time DESC
+    </select>
+
+
+</mapper>

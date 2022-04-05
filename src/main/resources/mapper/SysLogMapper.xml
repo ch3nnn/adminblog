@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ch3nnn.adminblog.mapper.SysLogMapper">
+
+    <resultMap id="BaseResultMap" type="cn.ch3nnn.adminblog.entity.SysLog">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="operation" column="operation" jdbcType="VARCHAR"/>
+        <result property="method" column="method" jdbcType="VARCHAR"/>
+        <result property="params" column="params" jdbcType="VARCHAR"/>
+        <result property="ip" column="ip" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,username,operation,
+        method,params,ip,
+        create_date
+    </sql>
+
+    <select id="selectLogPage" resultType="cn.ch3nnn.adminblog.entity.SysLog">
+        SELECT *
+        FROM tb_sys_log
+        ORDER BY create_date DESC
+    </select>
+
+</mapper>

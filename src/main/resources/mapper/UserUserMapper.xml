@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ch3nnn.adminblog.mapper.UserUserMapper">
+
+    <resultMap id="BaseResultMap" type="cn.ch3nnn.adminblog.entity.UserUser">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="lastLogin" column="last_login" jdbcType="TIMESTAMP"/>
+        <result property="isSuperuser" column="is_superuser" jdbcType="BOOLEAN"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="firstName" column="first_name" jdbcType="VARCHAR"/>
+        <result property="lastName" column="last_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="isStaff" column="is_staff" jdbcType="BOOLEAN"/>
+        <result property="isActive" column="is_active" jdbcType="BOOLEAN"/>
+        <result property="dateJoined" column="date_joined" jdbcType="TIMESTAMP"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+        <result property="text" column="text" jdbcType="VARCHAR"/>
+        <result property="link" column="link" jdbcType="VARCHAR"/>
+        <result property="avatarUrl" column="avatar_url" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <resultMap id="findAllUserUserResultMap" type="cn.ch3nnn.adminblog.dto.UserUserDto">
+        <id property="id" column="id" javaType="INTEGER"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="lastLogin" column="last_login" jdbcType="TIMESTAMP"/>
+        <result property="isSuperuser" column="is_superuser" jdbcType="BOOLEAN"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="firstName" column="first_name" jdbcType="VARCHAR"/>
+        <result property="lastName" column="last_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="isStaff" column="is_staff" jdbcType="BOOLEAN"/>
+        <result property="isActive" column="is_active" jdbcType="BOOLEAN"/>
+        <result property="dateJoined" column="date_joined" jdbcType="TIMESTAMP"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+        <result property="text" column="text" jdbcType="VARCHAR"/>
+        <result property="link" column="link" jdbcType="VARCHAR"/>
+        <result property="avatarUrl" column="avatar_url" jdbcType="VARCHAR"/>
+        <result property="provider" column="provider" jdbcType="VARCHAR"/>
+
+
+        <collection property="sysRoleList" ofType="cn.ch3nnn.adminblog.entity.SysRole">
+            <id property="id" column="role_id"/>
+            <result property="name" column="role_name"/>
+        </collection>
+
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,password,last_login,
+        is_superuser,username,first_name,
+        last_name,email,is_staff,
+        is_active,date_joined,nickname,
+        text,link,avatar_url
+    </sql>
+    <update id="updateByUserUser">
+        UPDATE user_user
+        <set>
+            <if test="password != null">password=#{password},</if>
+            <if test="isSuperuser != null">is_superuser=#{isSuperuser},</if>
+            <if test="username != null">username=#{username},</if>
+            <if test="email != null">email=#{email},</if>
+            <if test="lastLogin != null">last_login=#{lastLogin},</if>
+            <if test="nickname != null">nickname=#{nickname},</if>
+            <if test="text != null">text=#{text},</if>
+            <if test="avatarUrl != null">avatar_url=#{avatarUrl},</if>
+        </set>
+        WHERE id = #{id, jdbcType=INTEGER}
+    </update>
+
+
+    <update id="updatePasswordByUserId">
+        UPDATE user_user
+        SET password=#{password}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findAllUserUser" resultType="cn.ch3nnn.adminblog.entity.UserUser">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_user
+    </select>
+
+
+    <select id="listAll" resultMap="findAllUserUserResultMap">
+        SELECT user_user.*, provider, sr.id as role_id, sr.name as role_name
+        FROM user_user
+                 LEFT JOIN socialaccount_socialaccount ss on user_user.id = ss.user_id
+                 LEFT JOIN tb_sys_user_role tsur on user_user.id = tsur.user_id
+                 LEFT JOIN tb_sys_role sr on sr.id = tsur.role_id
+    </select>
+
+
+    <select id="getByUsername" parameterType="string" resultType="cn.ch3nnn.adminblog.entity.UserUser">
+        SELECT id, username, password, is_superuser, is_staff, is_active, avatar_url
+        FROM user_user
+        WHERE username = #{username}
+    </select>
+
+</mapper>

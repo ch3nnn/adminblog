@@ -1,0 +1,62 @@
+spring:
+
+  # 配置文件
+  profiles:
+    active: dev
+
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+    suffix: .html
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/djmyblog?useUnicode=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&AutoReconnect=true
+    username: root
+    password: 123456
+
+# mybatis-plus 配置
+mybatis-plus:
+  # mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  # 实体扫描，多个package用逗号或者分号分隔
+  type-aliases-package: cn.ch3nnn.entity
+  global-config:
+    db-config:
+      table-underline: true
+      db-type: mysql
+
+
+# PageHelper 分页配置
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+
+# 日志级别
+logging:
+  # 自定义日志级别
+  level:
+    root: info
+    cn.ch3nnn: debug
+
+  # 指定日志文件路径
+  file:
+    name: logs/blog-dev.log
+
+
+# TODO 七牛云oss
+qiniu:
+  accessKey:
+  secretKey:
+  bucketName:
+  domain:
+
+server:
+  port: 8080

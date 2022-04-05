@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(_,_)"></head>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.2.0/dist/echarts.min.js"></script>
+<body>
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:insert="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+            <div class="container-fluid">
+                <section class="error-page">
+                    <div class="error-box">
+                        <div class="error-body text-center">
+                            <h1>404</h1>
+                            <h4>很抱歉，但是那个页面看起来已经不存在了。</h4>
+                            <a class="btn btn-primary " href="/admin/index">返回首页</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+        <!--End 页面主要内容-->
+    </div>
+</div>
+<footer th:replace="admin/base :: commonFooter"></footer>
+</body>
+</html>

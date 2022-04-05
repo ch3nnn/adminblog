@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ch3nnn.adminblog.mapper.ScheduledCronMapper">
+
+    <resultMap id="BaseResultMap" type="cn.ch3nnn.adminblog.entity.ScheduledCron">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="cronClass" column="cron_class" jdbcType="VARCHAR"/>
+        <result property="cronExpression" column="cron_expression" jdbcType="VARCHAR"/>
+        <result property="taskExplain" column="task_explain" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="code" column="code" jdbcType="TINYINT"/>
+        <result property="errorMsg" column="error_msg" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="lastTime" column="last_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,cron_class,cron_expression,
+        task_explain,status,code,create_time,
+        last_time
+    </sql>
+
+
+    <update id="updateByScheduledCron">
+        UPDATE tb_scheduled_cron
+        <set>
+            <if test="cronClass != null">cron_class=#{cronClass},</if>
+            <if test="cronExpression != null">cron_expression=#{cronExpression},</if>
+            <if test="taskExplain != null">task_explain=#{taskExplain},</if>
+            <if test="lastTime != null">last_time=#{lastTime},</if>
+            <if test="createTime != null">create_time=#{createTime},</if>
+            <if test="status != null">status=#{status},</if>
+            <if test="code != null">code=#{code},</if>
+        </set>
+        WHERE id = #{id, jdbcType=INTEGER}
+    </update>
+
+
+    <update id="updateByCronClass">
+        UPDATE tb_scheduled_cron
+        <set>
+            <if test="cronClass != null">cron_class=#{cronClass},</if>
+            <if test="cronExpression != null">cron_expression=#{cronExpression},</if>
+            <if test="taskExplain != null">task_explain=#{taskExplain},</if>
+            <if test="lastTime != null">last_time=#{lastTime},</if>
+            <if test="createTime != null">create_time=#{createTime},</if>
+            <if test="status != null">status=#{status},</if>
+            <if test="code != null">code=#{code},</if>
+            <if test="errorMsg != null">error_msg=#{errorMsg},</if>
+        </set>
+        WHERE cron_class = #{cronClass}
+    </update>
+
+
+    <select id="findByCronClass" resultType="cn.ch3nnn.adminblog.entity.ScheduledCron">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tb_scheduled_cron
+    </select>
+</mapper>

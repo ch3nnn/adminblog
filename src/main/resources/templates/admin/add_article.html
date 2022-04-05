@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(~{::script},_)"></head>
+<!--<head th:replace="admin/base :: commonHead(_,_)"></head>-->
+<!--<script src="https://cdn.ckeditor.com/4.16.2/full-all/ckeditor.js"></script>-->
+<script th:src="@{/js/ckeditor/ckeditor.js}"></script>
+
+<body>
+
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:replace="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+
+            <div class="container-fluid">
+
+                <div class="row">
+
+                    <div th:if="${msg}" class="alert alert-success alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                                aria-hidden="true">×</span></button>
+                        <strong>文章</strong> [[${msg}]]
+                    </div>
+
+                    <div class="col-lg-12">
+
+                        <div class="card">
+                            <div class="card-body">
+
+                                <form th:action="'/admin/article/add'" method="post"
+                                      class="row">
+                                    <div style="display: none">
+                                        <input type="text" class="form-control" name="id"/>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label for="title">标题</label>
+                                        <input type="text" class="form-control" id="title"
+                                               name="title" value="" placeholder="请输入标题"/>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label for="content">内容</label>
+                                        <textarea name="body" id="editor1" rows="10"
+                                                  cols="80"></textarea>
+                                        <script>
+                                            CKEDITOR.replace("editor1");
+                                        </script>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label for="status">置顶</label>
+                                        <div class="clearfix">
+                                            <label class="lyear-radio radio-inline radio-primary">
+                                                <input type="radio" name="top" value="0"><span>否</span>
+                                            </label>
+                                            <label class="lyear-radio radio-inline radio-primary">
+                                                <input type="radio" name="top" value="1" checked><span>是</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label for="sort">阅读量</label>
+                                        <input type="text" class="form-control" id="sort" name="views"/>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label for="type">分类</label>
+                                        <div class="form-controls">
+                                            <select name="categoryId" class="form-control">
+                                                <option th:each="category : ${categoryList}"
+                                                        th:value="${category.getId()}"
+                                                        th:text="${category.getName()}">
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label class="col-xs-12" for="example-multiple-select">标签多选</label>
+                                        <select class="form-control" id="example-multiple-select"
+                                                name="tags" size="5" multiple="">
+                                            <option th:each="tag :${tagList}"
+                                                    th:value="${tag.getId()}"
+                                                    th:text="${tag.getName()}">
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <div class="card">
+                                            <label for="type">创建时间</label>
+                                            <input class="form-control js-datetimepicker" type="text"
+                                                   id="example-datetimepicker" name="createdTime" placeholder="请选择具体时间"
+                                                   data-side-by-side="true" data-locale="zh-cn"
+                                                   data-format="YYYY-MM-DD HH:mm">
+
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <div class="card">
+                                            <label for="type">修改时间</label>
+                                            <input class="form-control js-datetimepicker" type="text"
+                                                   id="example-datetimepicker" name="modifiedTime" placeholder="请选择具体时间"
+                                                   data-side-by-side="true" data-locale="zh-cn"
+                                                   data-format="YYYY-MM-DD HH:mm">
+
+
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label for="type">作者</label>
+                                        <div class="form-controls">
+                                            <select name="authorId" class="form-control" id="type">
+                                                <option th:each="user: ${userList}"
+                                                        th:value="${user.id}"
+                                                        th:text="${user.username}">
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label for="status">私密文章</label>
+                                        <div class="clearfix">
+                                            <label class="lyear-radio radio-inline radio-primary">
+                                                <input type="radio" name="isPrivate" value="0"><span>禁用</span>
+                                            </label>
+                                            <label class="lyear-radio radio-inline radio-primary">
+                                                <input type="radio" name="isPrivate" value="1" checked><span>启用</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <button type="submit" class="btn btn-primary ajax-post" target-form="add-form">
+                                            确定
+                                        </button>
+                                        <button type="button" class="btn btn-default"
+                                                onclick="history.back(-1);return false;">返 回
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+        <!--End 页面主要内容-->
+    </div>
+</div>
+
+<footer th:replace="admin/base :: commonFooter"></footer>
+
+</body>
+</html>

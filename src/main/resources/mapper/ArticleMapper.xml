@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.ch3nnn.adminblog.mapper.ArticleMapper">
+
+    <resultMap id="BaseResultMap" type="cn.ch3nnn.adminblog.entity.Article">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="body" column="body" jdbcType="VARCHAR"/>
+        <result property="excerpt" column="excerpt" jdbcType="VARCHAR"/>
+        <result property="createdTime" column="created_time" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modified_time" jdbcType="TIMESTAMP"/>
+        <result property="views" column="views" jdbcType="INTEGER"/>
+        <result property="top" column="top" jdbcType="BOOLEAN"/>
+        <result property="isPrivate" column="is_private" jdbcType="BOOLEAN"/>
+        <result property="isDelete" column="is_delete" jdbcType="BOOLEAN"/>
+
+        <!-- 外键用户表 -->
+        <association property="author" javaType="cn.ch3nnn.adminblog.entity.UserUser">
+            <id property="id" column="author_id"/>
+            <result property="username" column="username"/>
+        </association>
+
+        <!-- 外键标签表 -->
+        <association property="category" javaType="cn.ch3nnn.adminblog.entity.Category">
+            <id property="id" column="category_id"/>
+            <result property="name" column="name"/>
+        </association>
+
+        <!--  多对多映射:  tags 标签表    -->
+        <collection property="tags" ofType="cn.ch3nnn.adminblog.entity.Tag">
+            <id property="id" column="tag_id"/>
+            <result property="name" column="tag_name"/>
+        </collection>
+
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,title,body,
+        excerpt,created_time,modified_time,
+        views,author_id,category_id,
+        top,is_private
+    </sql>
+
+    <!--多对多保存文章,先保存文章,再保存标签关系, 一定要保存自动生长的主键-->
+    <insert id="insertArticle" useGeneratedKeys="true" keyProperty="id" keyColumn="id"
+            parameterType="cn.ch3nnn.adminblog.entity.Article">
+        INSERT INTO tb_content (title,
+                                body,
+                                views,
+                                created_time,
+                                modified_time,
+                                author_id,
+                                category_id,
+                                top,
+                                is_private)
+        VALUES (#{title},
+                #{body},
+                #{views},
+                #{createdTime},
+                #{modifiedTime},
+                #{authorId},
+                #{categoryId},
+                #{top},
+                #{isPrivate})
+    </insert>
+
+    <!--    TIPS： 注意， resultMap 和 resultType 不能共存，只能二选一。-->
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT tb_content.*, uu.id AS user_id, uu.username, tc.name, tt.id AS tag_id, tt.name AS tag_name
+        FROM tb_content
+                 JOIN user_user uu ON uu.id = tb_content.author_id
+                 JOIN tb_category tc ON tb_content.category_id = tc.id
+                 LEFT JOIN tb_content_tag tct ON tb_content.id = tct.post_id
+                 LEFT JOIN tb_tag tt ON tct.tag_id = tt.id
+        WHERE is_delete = 0
+        ORDER BY top DESC, created_time DESC
+    </select>
+
+    <select id="selectReadArticleNum" resultType="integer">
+        SELECT SUM(views) AS total_read
+        FROM tb_content
+    </select>
+
+    <select id="selectCommentNum" resultType="integer">
+        SELECT COUNT(*) AS total_comments
+        FROM tb_comments
+    </select>
+
+    <select id="selectByIdArticle" parameterType="integer" resultMap="BaseResultMap">
+        SELECT tb_content.*, uu.id AS user_id, uu.username, tc.name, tt.id AS tag_id, tt.name AS tag_name
+        FROM tb_content
+                 JOIN user_user uu ON uu.id = tb_content.author_id
+                 JOIN tb_category tc ON tb_content.category_id = tc.id
+                 LEFT JOIN tb_content_tag tct ON tb_content.id = tct.post_id
+                 LEFT JOIN tb_tag tt ON tct.tag_id = tt.id
+        WHERE tb_content.id = #{id}
+    </select>
+
+    <select id="searchByTitleOrBody" resultMap="BaseResultMap" parameterType="string">
+        SELECT tb_content.*,
+        uu.id AS user_id,
+        uu.username
+        FROM tb_content JOIN user_user uu ON uu.id = tb_content.author_id
+        <choose>
+            <when test="searchField == 'title'">WHERE title</when>
+            <when test="searchField == 'content'">WHERE body</when>
+            <otherwise>WHERE title</otherwise>
+        </choose>
+        LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY top DESC, created_time DESC
+    </select>
+
+    <update id="logicDeleteById">
+        UPDATE tb_content
+        SET is_delete=1
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateByArticleId" parameterType="cn.ch3nnn.adminblog.entity.Article">
+        UPDATE tb_content
+        SET title=#{title},
+            body=#{body},
+            created_time=#{createdTime},
+            modified_time=#{modifiedTime},
+            views=#{views},
+            author_id=#{authorId},
+            category_id=#{categoryId},
+            top=#{top},
+            is_private=#{isPrivate}
+        WHERE id = #{id}
+    </update>
+
+
+</mapper>

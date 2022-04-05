@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(_,_)"></head>
+<link rel="stylesheet" th:href="@{/js/jconfirm/jquery-confirm.min.css}">
+<body>
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:replace="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>编号</th>
+                                            <th>定时任务完整类名</th>
+                                            <th>cron表达式</th>
+                                            <th>任务描述</th>
+                                            <th>开启/关闭</th>
+                                            <th>创建时间</th>
+                                            <th>最后执行时间</th>
+                                            <th>状态</th>
+
+                                        </tr>
+                                        </thead>
+                                        <tbody th:each="task: ${scheduledCronList}">
+                                        <tr>
+                                            <td th:text="${task.id}">1</td>
+                                            <td th:text="${task.cronClass}"></td>
+                                            <td th:text="${task.cronExpression}"></td>
+                                            <td th:text="${task.taskExplain}"></td>
+                                            <td th:text="${task.code}"><font class="text-success">正常</font></td>
+                                            <td th:text="${#dates.format(task.createTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                            <td th:text="${#dates.format(task.lastTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                                            <td>
+                                                <span class="label label label-danger example-p-4"
+                                                      th:data_error_msg="${task.errorMsg}"
+                                                      th:if="${task.status} eq 0">异常</span>
+                                                <span class="label label label-success"
+                                                      th:if="${task.status} eq 1">正常</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a class="btn btn-xs btn-default example-p-2"
+                                                       data-toggle="tooltip" href="#!"
+                                                       title="编辑"><i class="mdi mdi-pencil"></i></a>
+                                                    <a class="btn btn-xs btn-default" data-toggle="tooltip"
+                                                       id="example-error-notify"
+                                                       th:onclick="clickDeleteMenu([[${task.id}]])"
+                                                       title="删除"><i class="mdi mdi-window-close"></i></a>
+                                                </div>
+                                            </td>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+        <!--End 页面主要内容-->
+        </aside>
+    </div>
+</div>
+<footer th:replace="admin/base :: commonFooter"></footer>
+<!--&lt;!&ndash;消息通知&ndash;&gt;-->
+<!--<script th:src="@{/js/bootstrap-notify.min.js}" type="text/javascript"></script>-->
+<!--<script th:src="@{/js/lightyear.js}" type="text/javascript"></script>-->
+<!--&lt;!&ndash;对话框&ndash;&gt;-->
+<!--<script th:src="@{/js/jconfirm/jquery-confirm.min.js}"></script>-->
+<script type="text/javascript">
+
+    function clickDeleteMenu(id) {
+        lightyear.loading('show');
+        // 假设ajax提交操作
+        $.ajax({
+            type: "DELETE",
+            url: "/admin/scheduled/task/delete/" + id,
+            contentType: "application/json",
+            dataType: "json",
+            timeout: 50000,
+            data: JSON.stringify({"id": id}),
+            async: false,
+            success: function (data) {
+                lightyear.loading('show');
+                // 假设ajax提交操作
+                if (data.code === 1) {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.url("/admin/users/list");  // 先指定跳转链接
+                        lightyear.notify('删除成功，页面即将刷新', 'success', 300);
+                    }, 1e3)
+                } else {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.notify(data.msg, 'warning', 100);
+                    }, 1e3)
+                }
+
+            },
+            error: function (err) {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                }, 1e3)
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    $('.example-p-4').on('click', function () {
+        $.confirm({
+            title: '错误信息:',
+            content: this.getAttribute('data_error_msg'),
+            type: 'red',
+            typeAnimated: true,
+            buttons: {
+                tryAgain: {
+                    text: '重试',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    }
+                },
+                close: {
+                    text: '关闭'
+                }
+            }
+        });
+    });
+    $('.example-p-3').on('click', function () {
+        $.confirm({
+            title: '新增用户',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<label>用户名</label>' +
+                '<input type="text" placeholder="用户名" class="username form-control" required />' +
+                '<label>密码</label>' +
+                '<input type="password" placeholder="密码" class="password form-control" required />' +
+                '<label>邮箱</label>' +
+                '<input type="text" placeholder="邮箱" class="email form-control" required />' +
+                '<label>是否管理员</label>' +
+                '<input type="text" placeholder="是否管理员" class="isSuperuser form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+
+                        var data = {
+                            "username": this.$content.find('.username').val(),
+                            "password": this.$content.find('.password').val(),
+                            "email": this.$content.find('.email').val(),
+                            "isSuperuser": this.$content.find('.isSuperuser').val().length > 0,
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "POST",
+                            url: "/admin/users/add",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/users/list");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    });
+    $('.example-p-2').on('click', function () {
+        // 获取点击标签
+        var parentNode = this.parentNode.parentNode.parentNode;
+        var array = parentNode.getElementsByTagName("td");
+
+        $.confirm({
+            title: '修改定时任务',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<input type="text" value="' + array[0].innerText + '" class="id form-control" required style="display:none" />' +
+                '<label>定时任务完整类名</label>' +
+                '<input type="text" placeholder="定时任务完整类名" value="' + array[1].innerText + '" class="cronClass form-control" required />' +
+                '<label>cron表达式</label>' +
+                '<input type="text" placeholder="cron表达式" value="' + array[2].innerText + '"  class="cronExpression form-control" required />' +
+                '<label>任务描述</label>' +
+                '<input type="text" placeholder="任务描述" value="' + array[3].innerText + '"  class="taskExplain form-control" required />' +
+                '<label>开启/关闭状态</label>' +
+                '<input type="text" placeholder="状态" value="' + array[4].innerText + '"  class="code form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+                        var data = {
+                            "id": this.$content.find('.id').val(),
+                            "cronClass": this.$content.find('.cronClass').val(),
+                            "cronExpression": this.$content.find('.cronExpression').val(),
+                            "taskExplain": this.$content.find('.taskExplain').val(),
+                            "code": this.$content.find('.code').val(),
+                            "status": 1,
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "PUT",
+                            url: "/admin/scheduled/task/update",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/scheduled/task/list");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

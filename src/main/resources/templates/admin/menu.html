@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(_,_)"></head>
+<link rel="stylesheet" th:href="@{/js/jconfirm/jquery-confirm.min.css}">
+<body>
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:replace="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-toolbar clearfix">
+                                <div class="toolbar-btn-action">
+                                    <a class="btn btn-primary m-r-5 example-p-3" href="#!"><i class="mdi mdi-plus"></i>新增</a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>编号</th>
+                                            <th>功能名称</th>
+                                            <th>父类菜单id</th>
+                                            <th>链接地址</th>
+                                            <th>图标</th>
+                                            <th>排序</th>
+                                            <th>操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody th:each="menu: ${menus}">
+                                        <tr th:if="${menu.children} != '[]'">
+                                            <td th:text="${menu.id}">1</td>
+                                            <td th:text="${menu.name}">第01章 天涯思君不可忘</td>
+                                            <td th:text="${menu.parentId}">金庸</td>
+                                            <td th:text="${menu.url}">36</td>
+                                            <td th:text="${menu.icon}"><font class="text-success">正常</font></td>
+                                            <td th:text="${menu.sort}"></td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a class="btn btn-xs btn-default example-p-2"
+                                                       href="#!" title="编辑"
+                                                       data-toggle="tooltip"><i class="mdi mdi-pencil"></i></a>
+                                                    <a class="btn btn-xs btn-default" id="example-error-notify"
+                                                       th:onclick="clickDeleteMenu([[${menu.id}]])"
+                                                       title="删除"
+                                                       data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>
+                                                </div>
+                                            </td>
+                                            <!-- 子菜单   -->
+                                        <tr th:each="children: ${menu.children}">
+                                            <td th:text="${children.id}">1</td>
+                                            <td th:text="${children.name}">1</td>
+                                            <td th:text="${children.parentId}">金庸</td>
+                                            <td th:text="${children.url}">36</td>
+                                            <td th:text="${children.icon}"><font class="text-success">正常</font></td>
+                                            <td th:text="${children.sort}"></td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a class="btn btn-xs btn-default example-p-2"
+                                                       href="#!" title="编辑"
+                                                       data-toggle="tooltip"><i class="mdi mdi-pencil"></i></a>
+                                                    <a class="btn btn-xs btn-default" id="example-error-notify"
+                                                       th:onclick="clickDeleteMenu([[${children.id}]])"
+                                                       title="删除"
+                                                       data-toggle="tooltip"><i class="mdi mdi-window-close"></i></a>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+        <!--End 页面主要内容-->
+        </aside>
+    </div>
+</div>
+<footer th:replace="admin/base :: commonFooter"></footer>
+<!--&lt;!&ndash;对话框&ndash;&gt;-->
+<!--<script th:src="@{/js/jconfirm/jquery-confirm.min.js}"></script>-->
+<!--&lt;!&ndash;消息通知&ndash;&gt;-->
+<!--<script type="text/javascript" th:src="@{/js/bootstrap-notify.min.js}"></script>-->
+<!--<script type="text/javascript" th:src="@{/js/lightyear.js}"></script>-->
+<script type="text/javascript">
+
+    function clickDeleteMenu(id) {
+        lightyear.loading('show');
+        // 假设ajax提交操作
+        $.ajax({
+            type: "DELETE",
+            url: "/admin/menu/delete/" + id,
+            contentType: "application/json",
+            dataType: "json",
+            timeout: 50000,
+            data: JSON.stringify({"id": id}),
+            async: false,
+            success: function (data) {
+                lightyear.loading('show');
+                // 假设ajax提交操作
+                if (data.code === 1) {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.url("/admin/menu/list");  // 先指定跳转链接
+                        lightyear.notify('删除成功，页面即将刷新', 'success', 300);
+                    }, 1e3)
+                } else {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.notify(data.msg, 'warning', 100);
+                    }, 1e3)
+                }
+
+            },
+            error: function (err) {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                }, 1e3)
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    $('.example-p-3').on('click', function () {
+        $.confirm({
+            title: '新增菜单',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<label>功能名称</label>' +
+                '<input type="text" placeholder="功能名称" class="menuName form-control" required />' +
+                '<label>上级菜单</label>' +
+                '<input type="text" placeholder="上级菜单ID" class="parentMenuId form-control" required />' +
+                '<label>链接地址</label>' +
+                '<input type="text" placeholder="链接地址" class="url form-control" required />' +
+                '<label>图标</label>' +
+                '<input type="text" placeholder="图标" class="icon form-control" required />' +
+                '<label>排序</label>' +
+                '<input type="text" placeholder="排序" class="sort form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+
+                        var data = {
+                            "parentId": this.$content.find('.parentMenuId').val(),
+                            "name": this.$content.find('.menuName').val(),
+                            "sort": this.$content.find('.sort').val(),
+                            "url": this.$content.find('.url').val(),
+                            "icon": this.$content.find('.icon').val(),
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "POST",
+                            url: "/admin/menu/add",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/menu/list");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    });
+    $('.example-p-2').on('click', function () {
+        // 获取点击标签
+        var parentNode = this.parentNode.parentNode.parentNode;
+        var array = parentNode.getElementsByTagName("td");
+
+        $.confirm({
+            title: '修改菜单',
+            content: '' +
+                '<form action="" class="formName">' +
+                '<div class="form-group">' +
+                '<input type="text" value="' + array[0].innerText + '" class="id form-control" required style="display:none" />' +
+                '<label>功能名称</label>' +
+                '<input type="text" placeholder="功能名称" value="' + array[1].innerText + '" class="menuName form-control" required />' +
+                '<label>上级菜单</label>' +
+                '<input type="text" placeholder="上级菜单ID" value="' + array[2].innerText + '"  class="parentMenuId form-control" required />' +
+                '<label>链接地址</label>' +
+                '<input type="text" placeholder="链接地址" value="' + array[3].innerText + '"  class="url form-control" required />' +
+                '<label>图标</label>' +
+                '<input type="text" placeholder="图标" value="' + array[4].innerText + '"  class="icon form-control" required />' +
+                '<label>排序</label>' +
+                '<input type="text" placeholder="排序" value="' + array[5].innerText + '"  class="sort form-control" required />' +
+                '</div>' +
+                '</form>',
+            buttons: {
+                formSubmit: {
+                    text: '提交',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        lightyear.loading('show');
+                        var data = {
+                            "id": this.$content.find('.id').val(),
+                            "parentId": this.$content.find('.parentMenuId').val(),
+                            "name": this.$content.find('.menuName').val(),
+                            "sort": this.$content.find('.sort').val(),
+                            "url": this.$content.find('.url').val(),
+                            "icon": this.$content.find('.icon').val(),
+                        }
+
+                        // 假设ajax提交操作
+                        $.ajax({
+                            type: "PUT",
+                            url: "/admin/menu/update",
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: 50000,
+                            data: JSON.stringify(data),
+                            async: false,
+                            success: function (data) {
+                                lightyear.loading('show');
+                                // 假设ajax提交操作
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.url("/admin/menu/list");  // 先指定跳转链接
+                                    if (data.code === 1) {
+                                        lightyear.notify(data.msg + '，页面即将刷新', 'success', 1000);
+                                    } else {
+                                        lightyear.notify(data.msg, 'warning', 400);
+                                    }
+                                }, 1e3)
+                            },
+                            error: function (err) {
+                                setTimeout(function () {
+                                    lightyear.loading('hide');
+                                    lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+                                }, 1e3)
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: '取消'
+                },
+            },
+            onContentReady: function () {
+                var jc = this;
+                this.$content.find('form').on('submit', function (e) {
+                    e.preventDefault();
+                    jc.$$formSubmit.trigger('click');
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

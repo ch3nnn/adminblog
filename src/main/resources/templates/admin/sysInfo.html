@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="admin/base :: commonHead(_,_)"></head>
+<link rel="stylesheet" th:href="@{/js/jconfirm/jquery-confirm.min.css}">
+<body>
+<div class="lyear-layout-web">
+    <div class="lyear-layout-container">
+        <!--左侧导航-->
+        <aside th:replace="admin/base :: commonMenu"></aside>
+        <!--End 左侧导航-->
+
+        <!--头部信息-->
+        <meta content="IE=edge" http-equiv="X-UA-Compatible">
+        <meta content="initial-scale=1.0, user-scalable=no, width=device-width" name="viewport">
+        <header th:replace="admin/base :: commonHeader"></header>
+        <!--End 头部信息-->
+
+        <!--页面主要内容-->
+        <main class="lyear-layout-content">
+
+            <div class="container-fluid">
+                <style>
+                    html,
+                    body,
+                    #container {
+                        margin: 0;
+                        padding: 0;
+                        width: 400px;
+                        height: 400px;
+                    }
+
+                    .input-card-my {
+                        display: flex;
+                        flex-direction: column;
+                        min-width: 0;
+                        word-wrap: break-word;
+                        background-color: #fff;
+                        background-clip: border-box;
+                        /*border-radius: .25rem;*/
+                        width: 22rem;
+                        border-width: 0;
+                        border-radius: 0.4rem;
+                        box-shadow: 0 2px 6px 0 rgba(114, 124, 245, .5);
+                        position: fixed;
+                        /*bottom: 1rem;*/
+                        /*right: 1rem;*/
+                        /*-ms-flex: 1 1 auto;*/
+                        flex: 1 1 auto;
+                        padding: 0.75rem 1.25rem;
+                    }
+
+
+                    .websocketLog {
+                        display: flex;
+                        flex-direction: column;
+                        min-width: 0;
+                        word-wrap: break-word;
+                        background-color: #fff;
+                        background-clip: border-box;
+                        /*border-radius: .25rem;*/
+                        width: 97rem;
+                        border-width: 0;
+                        border-radius: 0.4rem;
+                        box-shadow: 0 2px 6px 0 rgba(114, 124, 245, .5);
+                        position: fixed;
+                        /*bottom: 1rem;*/
+                        right: 2rem;
+                        /*-ms-flex: 1 1 auto;*/
+                        flex: 1 1 auto;
+                        padding: 0.75rem 1.25rem;
+                    }
+
+                </style>
+                <div class="input-card-my" style="width: auto;">
+                    <div class="input-item">
+                        <h4>IP维度热力图</h4>
+                        <p class="index-count" style="font-weight:bold"></p>
+                    </div>
+                    <div id="container"></div>
+                    <div class="input-item">
+                        <br>
+                        <button class="btn btn-w-md btn-round btn-info btn-sm" onclick="heatmap.show()">显示热力图</button>
+                        <button class="btn btn-w-md btn-round btn-secondary btn-sm" onclick="heatmap.hide()">关闭热力图
+                        </button>
+                    </div>
+
+                </div>
+                <div class="websocketLog">
+                    <div class="input-item">
+                        <h4>实时日志</h4>
+                    </div>
+                    <div class="col-md-12">
+                        <p style="font-weight:bold">接收到的日志信息：</p>
+
+                    </div>
+
+
+                    <div id="log-container"
+                         style="height: 400px; overflow-y: scroll; background: #333; color: #aaa; padding: 10px;">
+                        <div></div>
+                    </div>
+                    <div class="input-item">
+                        <br>
+                        <button class="btn btn-w-md btn-round btn-info btn-sm" onclick="connect()">进行连接</button>
+                        <button class="btn btn-w-md btn-round btn-secondary btn-sm" onclick="disconnect()">断开连接</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+        <!--End 页面主要内容-->
+        </aside>
+    </div>
+</div>
+<footer th:replace="admin/base :: commonFooter"></footer>
+<script src="https://cdn.bootcdn.net/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="//webapi.amap.com/maps?v=1.4.15&key=1ad6e00225a94cee95038aab8d289539"></script>
+<script>
+    let heatmapData;
+    $.ajax({
+        type: "GET",
+        url: "/admin/sysInfo/ipHeatmap",
+        contentType: "application/json",
+        timeout: 50000,
+        async: false,
+        success: function (data) {
+            // 假设ajax提交操作
+            if (data.code === 1) {
+                // 获取当前时间
+                function getFormatDate() {
+                    var nowDate = new Date();
+                    var year = nowDate.getFullYear();
+                    var month = nowDate.getMonth() + 1 < 10 ? "0" + (nowDate.getMonth() + 1) : nowDate.getMonth() + 1;
+                    var date = nowDate.getDate() < 10 ? "0" + nowDate.getDate() : nowDate.getDate();
+                    var hour = nowDate.getHours() < 10 ? "0" + nowDate.getHours() : nowDate.getHours();
+                    var minute = nowDate.getMinutes() < 10 ? "0" + nowDate.getMinutes() : nowDate.getMinutes();
+                    var second = nowDate.getSeconds() < 10 ? "0" + nowDate.getSeconds() : nowDate.getSeconds();
+                    return year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second;
+                }
+
+                var str = getFormatDate();
+
+                $(".index-count").text('数据量: ' + data.data.count + ' 更新日期: ' + str);
+                // ip维度数据
+                heatmapData = data.data.heatMapDataDtoList;
+            } else {
+                setTimeout(function () {
+                    lightyear.loading('hide');
+                    lightyear.notify(data.msg, 'danger', 100);
+                }, 1e3)
+            }
+
+        },
+        error: function (err) {
+            setTimeout(function () {
+                lightyear.loading('hide');
+                lightyear.notify('服务器错误，请稍后再试~', 'danger', 100);
+            }, 1e3)
+        }
+    })
+
+</script>
+<script>
+    var map = new AMap.Map("container", {
+        mapStyle: 'amap://styles/fresh', //设置地图的显示样式
+        resizeEnable: true,
+        center: [109, 35],
+        zoom: 4,
+        viewMode: '2D',  //设置地图模式
+        lang: 'zh_cn',  //设置地图语言类型
+    });
+
+    AMap.plugin('AMap.ToolBar', function () {//异步加载插件
+        var toolbar = new AMap.ToolBar();
+        map.addControl(toolbar);
+    });
+
+
+    if (!isSupportCanvas()) {
+        alert('热力图仅对支持canvas的浏览器适用,您所使用的浏览器不能使用热力图功能,请换个浏览器试试~')
+    }
+
+    //详细的参数,可以查看heatmap.js的文档 http://www.patrick-wied.at/static/heatmapjs/docs.html
+    //参数说明如下:
+    /* visible 热力图是否显示,默认为true
+     * opacity 热力图的透明度,分别对应heatmap.js的minOpacity和maxOpacity
+     * radius 势力图的每个点的半径大小
+     * gradient  {JSON} 热力图的渐变区间 . gradient如下所示
+     *	{
+     .2:'rgb(0, 255, 255)',
+     .5:'rgb(0, 110, 255)',
+     .8:'rgb(100, 0, 255)'
+     }
+     其中 key 表示插值的位置, 0-1
+     value 为颜色值
+     */
+    var heatmap;
+    map.plugin(["AMap.Heatmap"], function () {
+        //初始化heatmap对象
+        heatmap = new AMap.Heatmap(map, {
+            radius: 15, //给定半径
+            opacity: [0, 0.8],
+
+            gradient: {
+                0.5: 'blue',
+                0.65: 'rgb(117,211,248)',
+                0.7: 'rgb(0, 255, 0)',
+                0.9: '#ffea00',
+                1.0: 'red'
+            }
+
+        });
+        //设置数据集：该数据为北京部分“公园”数据
+        heatmap.setDataSet({
+            data: heatmapData,
+            max: 100
+        });
+    });
+
+    //判断浏览区是否支持canvas
+    function isSupportCanvas() {
+        var elem = document.createElement('canvas');
+        return !!(elem.getContext && elem.getContext('2d'));
+    }
+</script>
+<script>
+
+    // 设置 STOMP 客户端
+    var stompClient = null;
+    // 设置 WebSocket 进入端点
+    var SOCKET_ENDPOINT = "/mydlq";
+    // 设置订阅消息的请求前缀
+    var SUBSCRIBE_PREFIX = "/topic"
+    // 设置订阅消息的请求地址
+    var SUBSCRIBE = "";
+    // 设置服务器端点，访问服务器中哪个接口
+    var SEND_ENDPOINT = "/app/serviceLog";
+
+    /* 连接 */
+    $(document).ready(function () {
+        // 设置 SOCKET
+        var socket = new SockJS(SOCKET_ENDPOINT);
+        // 配置 STOMP 客户端
+        stompClient = Stomp.over(socket);
+        // STOMP 客户端连接
+        stompClient.connect({}, function (frame) {
+            // 设置订阅地址
+            SUBSCRIBE = SUBSCRIBE_PREFIX;
+            // 执行订阅消息
+            stompClient.subscribe(SUBSCRIBE, function (responseBody) {
+                var receiveMessage = JSON.parse(responseBody.body);
+                $("#log-container div").append("<p>" + receiveMessage.content + "</p>");
+                $("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+
+            });
+            // 设置待发送的消息内容
+            var message = '{"destination": "' + SUBSCRIBE + '"' + '}';
+            // 发送消息
+            stompClient.send(SEND_ENDPOINT, {}, message);
+
+
+        });
+    });
+
+    /* 进行连接 */
+    function connect() {
+        // 设置 SOCKET
+        var socket = new SockJS(SOCKET_ENDPOINT);
+        // 配置 STOMP 客户端
+        stompClient = Stomp.over(socket);
+        // STOMP 客户端连接
+        stompClient.connect({}, function (frame) {
+            // 设置订阅地址
+            SUBSCRIBE = SUBSCRIBE_PREFIX;
+            // 执行订阅消息
+            stompClient.subscribe(SUBSCRIBE, function (responseBody) {
+                var receiveMessage = JSON.parse(responseBody.body);
+                $("#log-container div").append("<p>" + receiveMessage.content + "</p>");
+                $("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+            });
+            // 设置待发送的消息内容
+            var message = '{"destination": "' + SUBSCRIBE + '"' + '}';
+            // 发送消息
+            stompClient.send(SEND_ENDPOINT, {}, message);
+
+        });
+    }
+
+    /* 断开连接 */
+    function disconnect() {
+        stompClient.disconnect(function () {
+            $.ajax({
+                type: "GET",
+                url: "/admin/websocketLog/close",
+                timeout: 50000,
+                async: false,
+                success: function (data) {
+                    lightyear.loading('show');
+                    // 假设ajax提交操作
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.notify(data.msg, 'info', 50);
+                    }, 1e3)
+                },
+                error: function (err) {
+                    setTimeout(function () {
+                        lightyear.loading('hide');
+                        lightyear.notify('服务器错误，请稍后再试~', 'danger', 50);
+                    }, 1e3)
+                }
+            });
+        });
+    }
+
+</script>
+
+</body>
+</html>
