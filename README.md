@@ -41,7 +41,8 @@
 #### 效果
 
 首页
-  <img src="imgs/screencapture-ch3nnn-cn-admin-index-2021-11-11-18_40_50.png" width="600"/>
+
+<img src="imgs/screencapture-ch3nnn-cn-admin-index-2021-11-11-18_40_50.png" width="600"/>
 
 文章管理
   <img src="imgs/screencapture-ch3nnn-cn-admin-article-edit-detail-135-2021-11-11-18_42_06.png" width="600"/>
